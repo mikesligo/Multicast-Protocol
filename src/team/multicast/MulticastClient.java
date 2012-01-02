@@ -36,25 +36,31 @@ public class MulticastClient {
 	public MulticastClient(String addr, int port) {
 		try {
 			this.port= port;
-			address = InetAddress.getByName(addr);
-			socket = new MulticastSocket(port);
-			socket.joinGroup(address);
+			this.address = InetAddress.getByName(addr);
+
+			// creates the socket
+			this.socket = new MulticastSocket(port);
+
+			// joins the multicast socket (or something)
+			this.socket.joinGroup(address);
+			
 		} catch(Exception e) {
 			e.printStackTrace();
 			System.exit(-1);
 		}
 	}
 	
+	// Method called my main
 	public void run(){
-		String msg = "Date?"; // temporary
+		String msg = "Date?"; // temporary, will have a do-while loop to take input msgs, and that's basically part 1
 		byte[] buffer;
 		DatagramPacket packet = null;
-		
+
 		try {
 			// send datagram to server
 			packet = new DatagramPacket(msg.getBytes(),	msg.length(), address, port);
-			socket.send(packet); // TODO make sending thread
-			
+			socket.send(packet);
+
 			// wait for incoming datagrams and print their content
 			while (true) {
 				buffer = new byte[MAX_BUFFER];
@@ -63,7 +69,7 @@ public class MulticastClient {
 				buffer= packet.getData();
 				term.println(" | " + new String(buffer, 0, packet.getLength()));
 			}
-			
+
 		} catch(Exception e) {
 			e.printStackTrace();
 			System.exit(-1);
@@ -72,16 +78,12 @@ public class MulticastClient {
 
 	public static void main(String[] args) {
 		term = new Terminal ("Client");
-		int port;
-		String address;
 		MulticastClient client=null;
-		
+
 		try{
 			term.println("Program start");
-			address= MCAST_ADDR;
-			port= 9013;
 			// define new multicast client object
-			client= new MulticastClient(address, port);
+			client= new MulticastClient(MCAST_ADDR, MCAST_PORT);
 			client.run();
 		} catch(Exception e) {
 			e.printStackTrace();
