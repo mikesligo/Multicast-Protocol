@@ -38,20 +38,27 @@ public class MulticastServer {
 	public MulticastServer(String addr, int port) {
 		try {
 			this.port= port;
-			address = InetAddress.getByName(addr);
-			socket = new MulticastSocket(port);
-			socket.joinGroup(address);
+			this.address = InetAddress.getByName(addr);
+			
+			// creates the socket
+			this.socket = new MulticastSocket(port);
+			
+			// joins the multicast socket (or something)
+			this.socket.joinGroup(address);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
 			System.exit(-1);
 		}
 	}
-
+	
+	// Method called by Main
 	public void init(){
+		// The sample code initialised them as null
 		DatagramPacket packet= null;
 		byte[] buffer = null;
 		String msg = null;
+		String prevmsg = null;
 
 		try {
 			while (true) {
@@ -60,11 +67,17 @@ public class MulticastServer {
 				packet = new DatagramPacket(buffer, buffer.length);
 				socket.receive(packet);
 				msg= new String(buffer, 0, packet.getLength());
+				prevmsg = msg; // explained in a bit
 
 				// print this in the server log for debugging
 				term.println("Received: " + msg + "from: "+packet.getAddress()+":"+packet.getPort());
-				term.println("Sending: " + new String(buffer));
-				socket.send(packet);
+				
+				// This 'if' statement is here, because without it the server goes in a perpetual loop of sending and receiving the same message
+				// I'm sure there's a fix to this, but I haven't been able to find it..
+				if (msg != prevmsg){
+					term.println("Sending: " + new String(buffer));
+					socket.send(packet);
+				}
 			}				
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -73,17 +86,14 @@ public class MulticastServer {
 
 	public static void main(String[] args) {
 		term = new Terminal("Server");
-
-		MulticastServer server = null;
-		int port;
-		String address;
+		
+		// Initialise it's own class
+		MulticastServer server;
 
 		term.println("Server start");
 		try {
-			address= MCAST_ADDR;
-			port= MCAST_PORT;
-			server= new MulticastServer(address, port);
-
+			// MCAST_ADDR and MCAST_PORT are hardcoded as static final variables
+			server= new MulticastServer(MCAST_ADDR, MCAST_PORT);
 			server.init();
 		} catch(Exception e) {
 			e.printStackTrace();
